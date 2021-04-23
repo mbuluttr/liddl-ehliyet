@@ -1,0 +1,8 @@
+{
+  "root": true,
+  "extends": "@react-native-community",
+  "rules": {
+    "react-native/no-inline-styles": 0,
+    "quotes": [2, "double"]
+  }
+}

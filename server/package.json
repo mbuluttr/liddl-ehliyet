@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "start": "nodemon ./src/index.js"
+  },
+  "dependencies": {
+    "apollo-server-express": "^2.21.1",
+    "axios": "^0.21.1",
+    "bcrypt": "^5.0.1",
+    "cheerio": "^1.0.0-rc.5",
+    "cloudinary": "^1.25.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "graphql": "^15.5.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.12.0",
+    "object-hash": "^2.1.1",
+    "qs": "^6.9.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
