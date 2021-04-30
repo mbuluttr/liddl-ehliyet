@@ -16,7 +16,8 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
       SplashScreen.show(this, R.style.SplashScreenTheme);
-      super.onCreate(savedInstanceState);
+      // super.onCreate(savedInstanceState); // https://github.com/software-mansion/react-native-screens/issues/114#issuecomment-529597084 - java.lang.IllegalStateException -com.swmansion.rnscreens.ScreenFragment.<init>
+      super.onCreate(null);
   }
 
   @Override
