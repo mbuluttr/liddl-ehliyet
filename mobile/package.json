@@ -13,6 +13,7 @@
     "@apollo/client": "^3.3.15",
     "@react-native-async-storage/async-storage": "^1.15.2",
     "@react-native-community/masked-view": "^0.1.10",
+    "@react-native-community/netinfo": "^6.0.0",
     "@react-native-picker/picker": "^1.15.0",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.4",

@@ -4,14 +4,14 @@ import AnswerItemBox from "../components/AnswerItemBox";
 import BottomButtonGroupView from "../components/BottomButtonGroup";
 import MessageModal from "../components/MessageModal";
 import Navbar from "../components/Navbar";
-import { StyleSheet, View, ScrollView, ActivityIndicator, BackHandler, ToastAndroid } from "react-native";
+import Loading from "../components/Loading";
+import { StyleSheet, View, ScrollView, BackHandler, ToastAndroid } from "react-native";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_QUESTIONS_FROM_DB, CREATE_REPORT } from "../graphql/queries";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { colors } from "../theme/colors";
 import { useNavigation } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
-import { setSelected } from "../redux/slice/examSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelected, selectConnection } from "../redux/slice/examSlice";
 
 const DefaultExam = ({ route }) => {
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,7 @@ const DefaultExam = ({ route }) => {
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
+  const connection = useSelector(selectConnection);
   const dispatch = useDispatch();
 
   const { data, refetch } = useQuery(GET_QUESTIONS_FROM_DB, {
@@ -107,11 +108,8 @@ const DefaultExam = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {loading ? <Navbar title={"Lütfen Bekleyiniz"} /> : null}
       {loading ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size={75} color={colors.primary} />
-        </View>
+        <Loading connection={connection} />
       ) : (
         <View key={data.getQuestionsFromDB[index]._id} style={{ alignItems: "center" }}>
           <MessageModal

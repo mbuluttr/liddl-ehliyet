@@ -1,17 +1,21 @@
 import React, { useState, useCallback } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 import Navbar from "../components/Navbar";
+import SignItemBox from "../components/SignItemBox";
+import Loading from "../components/Loading";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { useQuery } from "@apollo/client";
 import { GET_SIGNS } from "../graphql/queries";
-import SignItemBox from "../components/SignItemBox";
 import { colors } from "../theme/colors";
 import { Picker } from "@react-native-picker/picker";
 import { sizes } from "../theme/sizes";
+import { useSelector } from "react-redux";
+import { selectConnection } from "../redux/slice/examSlice";
 
 const TrafficSigns = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("Tehlike ve Uyarı İşaretleri");
+  const connection = useSelector(selectConnection);
 
   const { data } = useQuery(GET_SIGNS, {
     onCompleted() {
@@ -30,11 +34,8 @@ const TrafficSigns = () => {
 
   return (
     <View style={styles.container}>
-      {loading ? <Navbar title={"Lütfen Bekleyiniz"} /> : null}
       {loading ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size={75} color={colors.primary} />
-        </View>
+        <Loading connection={connection} />
       ) : (
         <View>
           <Navbar title="Trafik İşaretleri" noModal />

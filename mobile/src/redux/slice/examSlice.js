@@ -10,6 +10,7 @@ export const examSlice = createSlice({
     wrongCount: 0,
     wrongQuestionIds: [],
     correctQuestionIds: [],
+    connection: false,
   },
   reducers: {
     setSelected: (state, action) => {
@@ -45,10 +46,13 @@ export const examSlice = createSlice({
         }
       });
     },
+    setConnection: (state, action) => {
+      state.connection = action.payload;
+    },
   },
 });
 
-export const { setSelected, setSelectedArray, clearAllStates, calculateExamResult } = examSlice.actions;
+export const { setSelected, setSelectedArray, clearAllStates, calculateExamResult, setConnection } = examSlice.actions;
 
 export const selectSelected = (state) => state.exam.selected;
 export const selectSelectedArray = (state) => state.exam.selectedArray;
@@ -57,5 +61,6 @@ export const selectWrongCount = (state) => state.exam.wrongCount;
 export const selectWrongQuestionIds = (state) => state.exam.wrongQuestionIds;
 export const selectCorrectQuestionIds = (state) => state.exam.correctQuestionIds;
 export const selectExamLength = (state) => state.exam.examLength;
+export const selectConnection = (state) => state.exam.connection;
 
 export default examSlice.reducer;

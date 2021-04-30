@@ -3,12 +3,14 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import MenuItemBox from "../components/MenuItemBox";
 import Navbar from "../components/Navbar";
 import { useDispatch } from "react-redux";
-import { clearAllStates } from "../redux/slice/examSlice";
+import { clearAllStates, setConnection } from "../redux/slice/examSlice";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 const Home = () => {
   const [questionCountFromStore, setQuestionCountFromStore] = useState(null);
+  const netInfo = useNetInfo();
 
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -19,6 +21,12 @@ const Home = () => {
       getData();
     }
   }, [isFocused, dispatch]);
+
+  useEffect(() => {
+    if (netInfo.isConnected !== null) {
+      dispatch(setConnection(netInfo.isConnected));
+    }
+  }, [netInfo.isConnected, dispatch]);
 
   const getData = async () => {
     try {
