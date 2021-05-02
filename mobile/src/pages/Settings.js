@@ -6,15 +6,17 @@ import { sizes } from "../theme/sizes";
 import Navbar from "../components/Navbar";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AdMobBanner } from "react-native-admob";
+import { env } from "../../environments";
 
 const Settings = () => {
   const navigation = useNavigation();
-
   const [contentHeight, setContentHeight] = useState(hp("85%"));
   const [imageHeight, setImageHeight] = useState(hp("35%"));
   const [keyboardStatus, setKeyboardStatus] = useState(false);
   const [questionCount, setQuestionCount] = useState(null);
   const [error, setError] = useState(false);
+  const [onlyNumberError, setOnlyNumberError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [valueFromStore, setValueFromStore] = useState(null);
 
@@ -57,9 +59,16 @@ const Settings = () => {
   };
 
   const saveHandler = () => {
-    if (questionCount) {
+    const validate = /[^0-9]/g.test(questionCount);
+
+    if (validate && questionCount !== null) {
+      setOnlyNumberError(true);
+    }
+
+    if (!validate && questionCount) {
+      setOnlyNumberError(false);
       const num = Number(questionCount);
-      if (num < 5 || num > 50) {
+      if (num < 10 || num > 50) {
         setError(true);
         setSuccess(false);
       } else {
@@ -92,21 +101,28 @@ const Settings = () => {
             <TextInput
               defaultValue={valueFromStore}
               style={styles.countInput}
-              keyboardType="number-pad"
+              keyboardType="numeric"
               onChangeText={(e) => setQuestionCount(e)}
+              maxLength={2}
             />
             <TouchableOpacity style={styles.saveButton} activeOpacity={0.7} onPress={() => saveHandler()}>
               <Text style={styles.buttonText}>Kaydet</Text>
             </TouchableOpacity>
           </View>
-          {error ? <Text style={styles.inputError}>Soru adedi 5 ile 50 arasında olmalı</Text> : null}
+          {error ? <Text style={styles.inputError}>Soru adedi 10 ile 50 arasında olmalı</Text> : null}
           {success ? <Text style={styles.inputSuccess}>Soru adedi kayıt edildi</Text> : null}
+          {onlyNumberError ? <Text style={styles.inputError}>Lütfen sadece sayı giriniz</Text> : null}
         </View>
 
         {keyboardStatus ? null : (
-          <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
-            <Text style={styles.buttonText}>Ana Sayfa</Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
+              <Text style={styles.buttonText}>Ana Sayfa</Text>
+            </TouchableOpacity>
+            <View style={{ alignSelf: "center", marginTop: 15 }}>
+              <AdMobBanner adSize="banner" adUnitID={env.SETTINGS_BANNER} onAdFailedToLoad={(e) => console.log(e)} />
+            </View>
+          </View>
         )}
       </View>
     </View>
