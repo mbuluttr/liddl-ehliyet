@@ -12,12 +12,17 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelected, selectConnection } from "../redux/slice/examSlice";
+import { AdMobRewarded, AdMobInterstitial } from "react-native-admob";
+import { env } from "../../environments";
 
 const MultipleOptionExam = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [exitCount, setExitCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [dataLength, setDataLength] = useState(0);
+  const [rewardedAdStatus, setRewardedAdStatus] = useState(false);
+  const [interstitialAdStatus, setInterstitialAdStatus] = useState(false);
   const navigation = useNavigation();
   const connection = useSelector(selectConnection);
   const dispatch = useDispatch();
@@ -28,6 +33,7 @@ const MultipleOptionExam = ({ route }) => {
     },
     onCompleted() {
       if (data.getItemExistsQuestionsFromDB.length) {
+        setDataLength(data.getItemExistsQuestionsFromDB.length);
         setLoading(false);
       }
     },
@@ -50,6 +56,24 @@ const MultipleOptionExam = ({ route }) => {
 
   const nextHandler = () => {
     setIndex(index + 1);
+
+    const firstAd = Math.trunc(dataLength / 2);
+    const finalAd = dataLength - 1;
+
+    if (index + 1 === finalAd) {
+      if (rewardedAdStatus) {
+        AdMobRewarded.showAd()
+          .then(() => setRewardedAdStatus(false))
+          .catch(() => setRewardedAdStatus(false));
+      }
+    }
+    if (index + 1 === firstAd) {
+      if (interstitialAdStatus) {
+        AdMobInterstitial.showAd()
+          .then(() => setInterstitialAdStatus(false))
+          .catch(() => setInterstitialAdStatus(false));
+      }
+    }
   };
 
   const backHandler = () => {
@@ -106,6 +130,55 @@ const MultipleOptionExam = ({ route }) => {
     }
   };
 
+  const getRewardedAd = () => {
+    AdMobRewarded.setAdUnitID(env.MULTIPLE_OPTION_EXAM_REWARDED);
+    AdMobRewarded.addEventListener("adLoaded", () => {
+      console.log("rewarded loaded success");
+      setRewardedAdStatus(true);
+    });
+
+    AdMobRewarded.requestAd()
+      .then(() => {
+        console.log("rewarded request success");
+        setRewardedAdStatus(true);
+      })
+      .catch((e) => {
+        if (e.message === "Ad is already loaded.") {
+          console.log("rewarded ad is already loaded");
+          setRewardedAdStatus(true);
+        }
+      });
+  };
+
+  const getInterstitialAd = () => {
+    AdMobInterstitial.setAdUnitID(env.MULTIPLE_OPTION_EXAM_INTERSTITIAL);
+    AdMobInterstitial.addEventListener("adLoaded", () => {
+      console.log("interstitial loaded success");
+      setInterstitialAdStatus(true);
+    });
+    AdMobInterstitial.requestAd()
+      .then(() => {
+        console.log("interstitial request success");
+        setInterstitialAdStatus(true);
+      })
+      .catch((e) => {
+        if (e.message === "Ad is already loaded.") {
+          console.log("interstitial ad is already loaded");
+          setInterstitialAdStatus(true);
+        }
+      });
+  };
+
+  useEffect(() => {
+    getRewardedAd();
+    getInterstitialAd();
+
+    return () => {
+      AdMobRewarded.removeAllListeners();
+      AdMobInterstitial.removeAllListeners();
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       {loading ? (
@@ -142,7 +215,7 @@ const MultipleOptionExam = ({ route }) => {
             backHandler={backHandler}
             nextHandler={nextHandler}
             currentIndex={index}
-            dataLength={data.getItemExistsQuestionsFromDB.length}
+            dataLength={dataLength}
             modalToggleHandler={modalToggleHandler}
           />
         </View>

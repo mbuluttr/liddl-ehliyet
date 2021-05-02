@@ -11,11 +11,14 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { setSelected } from "../redux/slice/examSlice";
+import { AdMobRewarded } from "react-native-admob";
+import { env } from "../../environments";
 
 const WrongAnswersExam = ({ data }) => {
   const [exitCount, setExitCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [rewardedAdStatus, setRewardedAdStatus] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
@@ -32,6 +35,16 @@ const WrongAnswersExam = ({ data }) => {
 
   const nextHandler = () => {
     setIndex(index + 1);
+
+    const finalAd = data.getWrongQuestionsFromDB.length - 1;
+
+    if (index + 1 === finalAd) {
+      if (rewardedAdStatus) {
+        AdMobRewarded.showAd()
+          .then(() => setRewardedAdStatus(false))
+          .catch(() => setRewardedAdStatus(false));
+      }
+    }
   };
 
   const backHandler = () => {
@@ -85,6 +98,35 @@ const WrongAnswersExam = ({ data }) => {
       console.log(e.message);
     }
   };
+
+  const getRewardedAd = () => {
+    AdMobRewarded.setAdUnitID(env.WRONG_ANSWERS_EXAM_REWARDED);
+    AdMobRewarded.addEventListener("adLoaded", () => {
+      console.log("rewarded loaded success");
+      setRewardedAdStatus(true);
+    });
+
+    AdMobRewarded.requestAd()
+      .then(() => {
+        console.log("rewarded request success");
+        setRewardedAdStatus(true);
+      })
+      .catch((e) => {
+        if (e.message === "Ad is already loaded.") {
+          console.log("rewarded ad is already loaded");
+          setRewardedAdStatus(true);
+        }
+      });
+  };
+
+  useEffect(() => {
+    getRewardedAd();
+
+    return () => {
+      AdMobRewarded.removeAllListeners();
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       <View key={data.getWrongQuestionsFromDB[index]._id} style={{ alignItems: "center" }}>

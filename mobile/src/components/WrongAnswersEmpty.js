@@ -4,6 +4,8 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import { colors } from "../theme/colors";
 import { sizes } from "../theme/sizes";
 import Divider from "./Divider";
+import { AdMobBanner } from "react-native-admob";
+import { env } from "../../environments";
 
 const WrongAnswersEmpty = () => {
   return (
@@ -14,6 +16,13 @@ const WrongAnswersEmpty = () => {
       </View>
       <View style={styles.infoView}>
         <Text style={styles.infoText}>Yanlış çözdüğünüz bir soru bulunamadı.</Text>
+      </View>
+      <View style={{ alignSelf: "center" }}>
+        <AdMobBanner
+          adSize="banner"
+          adUnitID={env.WRONG_QUESTIONS_EMPTY_BANNER}
+          onAdFailedToLoad={(e) => console.log(e)}
+        />
       </View>
     </View>
   );

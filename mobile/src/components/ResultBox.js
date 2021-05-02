@@ -6,6 +6,8 @@ import { sizes } from "../theme/sizes";
 import Divider from "./Divider";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import { AdMobBanner } from "react-native-admob";
+import { env } from "../../environments";
 
 const ResultBox = ({ examLength, correctCount, wrongCount }) => {
   const navigation = useNavigation();
@@ -26,11 +28,13 @@ const ResultBox = ({ examLength, correctCount, wrongCount }) => {
           <Ionicons name="close-sharp" size={sizes.hiki * 20} color={colors.negative} />
         </View>
         <Divider width={wp("45%")} height={2} mv={10} />
-        <Text style={[styles.infoText, { marginTop: sizes.hiki * 15 }]}>Sınavınızda başarılar dileriz</Text>
+        <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
+          <Text style={styles.buttonText}>Ana Sayfa</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
-        <Text style={styles.buttonText}>Ana Sayfa</Text>
-      </TouchableOpacity>
+      <View style={{ alignSelf: "center", marginTop: 15 }}>
+        <AdMobBanner adSize="banner" adUnitID={env.RESULT_BANNER} onAdFailedToLoad={(e) => console.log(e)} />
+      </View>
     </View>
   );
 };
@@ -84,6 +88,7 @@ const styles = StyleSheet.create({
     width: wp("50%"),
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "center",
     marginTop: sizes.hiki * 10,
   },
 
