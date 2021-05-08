@@ -57,8 +57,8 @@ const AnswerItemBox = ({ answers, question_id, correct_answer }) => {
           }
 
           if (image_data.width > wp("35%") && image_data.width < wp("40%")) {
-            image_data.height = image_data.height * 0.9;
-            image_data.width = image_data.width * 0.9;
+            image_data.height = image_data.height * 0.7;
+            image_data.width = image_data.width * 0.7;
           }
 
           if (image_data.width > wp("80%")) {
