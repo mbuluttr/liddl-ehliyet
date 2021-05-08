@@ -11,14 +11,13 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { setSelected } from "../redux/slice/examSlice";
-import { AdMobRewarded } from "react-native-admob";
+import { AdMobInterstitial } from "react-native-admob";
 import { env } from "../../environments";
 
 const WrongAnswersExam = ({ data }) => {
   const [exitCount, setExitCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
-  const [rewardedAdStatus, setRewardedAdStatus] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
@@ -38,12 +37,17 @@ const WrongAnswersExam = ({ data }) => {
 
     const finalAd = data.getWrongQuestionsFromDB.length - 1;
 
+    if (index === 0) {
+      getInterstitialAd(env.WRONG_ANSWERS_EXAM_INTERSTITIAL1);
+    }
+
     if (index + 1 === finalAd) {
-      if (rewardedAdStatus) {
-        AdMobRewarded.showAd()
-          .then(() => setRewardedAdStatus(false))
-          .catch(() => setRewardedAdStatus(false));
-      }
+      AdMobInterstitial.showAd()
+        .then(() => {
+          console.log("ad show correctly");
+          AdMobInterstitial.removeAllListeners();
+        })
+        .catch((e) => console.log(e.message, "catch | showAd"));
     }
   };
 
@@ -99,31 +103,23 @@ const WrongAnswersExam = ({ data }) => {
     }
   };
 
-  const getRewardedAd = () => {
-    AdMobRewarded.setAdUnitID(env.WRONG_ANSWERS_EXAM_REWARDED);
-    AdMobRewarded.addEventListener("adLoaded", () => {
-      console.log("rewarded loaded success");
-      setRewardedAdStatus(true);
+  const getInterstitialAd = (id) => {
+    AdMobInterstitial.setAdUnitID(id);
+    AdMobInterstitial.addEventListener("adLoaded", () => {
+      console.log("interstitial loaded success");
     });
-
-    AdMobRewarded.requestAd()
+    AdMobInterstitial.requestAd()
       .then(() => {
-        console.log("rewarded request success");
-        setRewardedAdStatus(true);
+        console.log("interstitial request success");
       })
       .catch((e) => {
-        if (e.message === "Ad is already loaded.") {
-          console.log("rewarded ad is already loaded");
-          setRewardedAdStatus(true);
-        }
+        console.log(e.message, "catch | requestAd");
       });
   };
 
   useEffect(() => {
-    getRewardedAd();
-
     return () => {
-      AdMobRewarded.removeAllListeners();
+      AdMobInterstitial.removeAllListeners();
     };
   }, []);
 
