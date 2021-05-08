@@ -6,8 +6,6 @@ import { sizes } from "../theme/sizes";
 import Navbar from "../components/Navbar";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AdMobBanner } from "react-native-admob";
-import { env } from "../../environments";
 
 const Settings = () => {
   const navigation = useNavigation();
@@ -75,6 +73,7 @@ const Settings = () => {
         setError(false);
         setSuccess(true);
         storeData(questionCount);
+        Keyboard.dismiss();
       }
     }
   };
@@ -115,14 +114,9 @@ const Settings = () => {
         </View>
 
         {keyboardStatus ? null : (
-          <View>
-            <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
-              <Text style={styles.buttonText}>Ana Sayfa</Text>
-            </TouchableOpacity>
-            <View style={{ alignSelf: "center", marginTop: 15 }}>
-              <AdMobBanner adSize="banner" adUnitID={env.SETTINGS_BANNER} onAdFailedToLoad={(e) => console.log(e)} />
-            </View>
-          </View>
+          <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
+            <Text style={styles.buttonText}>Ana Sayfa</Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>

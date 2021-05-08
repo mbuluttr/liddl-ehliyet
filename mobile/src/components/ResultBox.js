@@ -6,8 +6,6 @@ import { sizes } from "../theme/sizes";
 import Divider from "./Divider";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import { AdMobBanner } from "react-native-admob";
-import { env } from "../../environments";
 
 const ResultBox = ({ examLength, correctCount, wrongCount }) => {
   const navigation = useNavigation();
@@ -31,9 +29,6 @@ const ResultBox = ({ examLength, correctCount, wrongCount }) => {
         <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={() => navigation.navigate("Home")}>
           <Text style={styles.buttonText}>Ana Sayfa</Text>
         </TouchableOpacity>
-      </View>
-      <View style={{ alignSelf: "center", marginTop: 15 }}>
-        <AdMobBanner adSize="banner" adUnitID={env.RESULT_BANNER} onAdFailedToLoad={(e) => console.log(e)} />
       </View>
     </View>
   );
