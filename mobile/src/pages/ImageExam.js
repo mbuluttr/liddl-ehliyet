@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import QuestionItemBox from "../components/QuestionItemBox";
 import AnswerItemBox from "../components/AnswerItemBox";
 import BottomButtonGroupView from "../components/BottomButtonGroup";
 import MessageModal from "../components/MessageModal";
 import Navbar from "../components/Navbar";
+import Loading from "../components/Loading";
 import { StyleSheet, View, ScrollView, BackHandler, ToastAndroid } from "react-native";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_IMAGE_EXISTS_QUESTIONS_FROM_DB, CREATE_REPORT } from "../graphql/queries";
@@ -11,8 +12,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelected, selectConnection } from "../redux/slice/examSlice";
-import Loading from "../components/Loading";
-import { AdMobInterstitial } from "react-native-admob";
+import { InterstitialAd, AdEventType, TestIds } from "@react-native-firebase/admob";
 import { env } from "../../environments";
 
 const ImageExam = ({ route }) => {
@@ -21,9 +21,17 @@ const ImageExam = ({ route }) => {
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [dataLength, setDataLength] = useState(0);
-  const connection = useSelector(selectConnection);
+  const [loaded, setLoaded] = useState(false);
   const navigation = useNavigation();
+  const connection = useSelector(selectConnection);
   const dispatch = useDispatch();
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : env.IMAGE_EXAM_INTERSTITIAL;
+  const interstitialRef = useRef(
+    InterstitialAd.createForAdRequest(adUnitId, {
+      requestNonPersonalizedAdsOnly: true,
+      keywords: [env.KEY3, env.KEY4],
+    })
+  );
 
   const { data, refetch } = useQuery(GET_IMAGE_EXISTS_QUESTIONS_FROM_DB, {
     variables: {
@@ -52,27 +60,46 @@ const ImageExam = ({ route }) => {
     navigation.navigate("Exam Result");
   };
 
+  useEffect(() => {
+    let flag = true;
+    const eventListener = interstitialRef.current.onAdEvent((type) => {
+      if (type === AdEventType.LOADED) {
+        console.log("ad loaded");
+        setLoaded(true);
+      }
+
+      if (type === AdEventType.CLOSED) {
+        console.log("ad closed");
+        setLoaded(false);
+
+        if (flag) {
+          interstitialRef.current.load();
+          flag = false;
+        }
+      }
+    });
+
+    interstitialRef.current.load();
+
+    return () => {
+      eventListener();
+    };
+  }, []);
+
   const nextHandler = () => {
     setIndex(index + 1);
 
     const firstAd = Math.trunc(dataLength / 2);
     const finalAd = dataLength - 1;
 
-    if (index === 0) {
-      getInterstitialAd(env.IMAGE_EXAM_INTERSTITIAL1);
-    }
-
-    if (index === firstAd) {
-      getInterstitialAd(env.IMAGE_EXAM_INTERSTITIAL2);
-    }
-
     if (index + 1 === firstAd || index + 1 === finalAd) {
-      AdMobInterstitial.showAd()
-        .then(() => {
-          console.log("ad show correctly");
-          AdMobInterstitial.removeAllListeners();
-        })
-        .catch((e) => console.log(e.message, "catch | showAd"));
+      if (loaded) {
+        try {
+          interstitialRef.current.show();
+        } catch (error) {
+          console.log("interstitial show | catch");
+        }
+      }
     }
   };
 
@@ -129,26 +156,6 @@ const ImageExam = ({ route }) => {
       }
     }
   };
-
-  const getInterstitialAd = (id) => {
-    AdMobInterstitial.setAdUnitID(id);
-    AdMobInterstitial.addEventListener("adLoaded", () => {
-      console.log("interstitial loaded success");
-    });
-    AdMobInterstitial.requestAd()
-      .then(() => {
-        console.log("interstitial request success");
-      })
-      .catch((e) => {
-        console.log(e.message, "catch | requestAd");
-      });
-  };
-
-  useEffect(() => {
-    return () => {
-      AdMobInterstitial.removeAllListeners();
-    };
-  }, []);
 
   return (
     <View style={styles.container}>

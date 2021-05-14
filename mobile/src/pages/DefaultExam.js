@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import QuestionItemBox from "../components/QuestionItemBox";
 import AnswerItemBox from "../components/AnswerItemBox";
 import BottomButtonGroupView from "../components/BottomButtonGroup";
@@ -12,7 +12,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelected, selectConnection } from "../redux/slice/examSlice";
-import { AdMobInterstitial } from "react-native-admob";
+import { InterstitialAd, AdEventType, TestIds } from "@react-native-firebase/admob";
 import { env } from "../../environments";
 
 const DefaultExam = ({ route }) => {
@@ -21,9 +21,17 @@ const DefaultExam = ({ route }) => {
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [dataLength, setDataLength] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const navigation = useNavigation();
   const connection = useSelector(selectConnection);
   const dispatch = useDispatch();
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : env.DEFAULT_EXAM_INTERSTITIAL;
+  const interstitialRef = useRef(
+    InterstitialAd.createForAdRequest(adUnitId, {
+      requestNonPersonalizedAdsOnly: true,
+      keywords: [env.KEY1, env.KEY2],
+    })
+  );
 
   const { data, refetch } = useQuery(GET_QUESTIONS_FROM_DB, {
     variables: {
@@ -52,27 +60,46 @@ const DefaultExam = ({ route }) => {
     navigation.navigate("Exam Result");
   };
 
+  useEffect(() => {
+    let flag = true;
+    const eventListener = interstitialRef.current.onAdEvent((type) => {
+      if (type === AdEventType.LOADED) {
+        console.log("ad loaded");
+        setLoaded(true);
+      }
+
+      if (type === AdEventType.CLOSED) {
+        console.log("ad closed");
+        setLoaded(false);
+
+        if (flag) {
+          interstitialRef.current.load();
+          flag = false;
+        }
+      }
+    });
+
+    interstitialRef.current.load();
+
+    return () => {
+      eventListener();
+    };
+  }, []);
+
   const nextHandler = () => {
     setIndex(index + 1);
 
     const firstAd = Math.trunc(dataLength / 2);
     const finalAd = dataLength - 1;
 
-    if (index === 0) {
-      getInterstitialAd(env.DEFAULT_EXAM_INTERSTITIAL1);
-    }
-
-    if (index === firstAd) {
-      getInterstitialAd(env.DEFAULT_EXAM_INTERSTITIAL2);
-    }
-
     if (index + 1 === firstAd || index + 1 === finalAd) {
-      AdMobInterstitial.showAd()
-        .then(() => {
-          console.log("ad show correctly");
-          AdMobInterstitial.removeAllListeners();
-        })
-        .catch((e) => console.log(e.message, "catch | showAd"));
+      if (loaded) {
+        try {
+          interstitialRef.current.show();
+        } catch (error) {
+          console.log("interstitial show | catch");
+        }
+      }
     }
   };
 
@@ -129,26 +156,6 @@ const DefaultExam = ({ route }) => {
       }
     }
   };
-
-  const getInterstitialAd = (id) => {
-    AdMobInterstitial.setAdUnitID(id);
-    AdMobInterstitial.addEventListener("adLoaded", () => {
-      console.log("interstitial loaded success");
-    });
-    AdMobInterstitial.requestAd()
-      .then(() => {
-        console.log("interstitial request success");
-      })
-      .catch((e) => {
-        console.log(e.message, "catch | requestAd");
-      });
-  };
-
-  useEffect(() => {
-    return () => {
-      AdMobInterstitial.removeAllListeners();
-    };
-  }, []);
 
   return (
     <View style={styles.container}>
