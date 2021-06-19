@@ -7,8 +7,13 @@ import store from "./src/redux/store/store";
 import { Provider } from "react-redux";
 import { colors } from "./src/theme/colors";
 import SplashScreen from "react-native-splash-screen";
+import { oneSignalInitialize } from "./src/scripts/OneSignalInitialize";
 
 function App() {
+  useEffect(() => {
+    oneSignalInitialize();
+  }, []);
+
   useEffect(() => {
     SplashScreen.hide();
   }, []);
