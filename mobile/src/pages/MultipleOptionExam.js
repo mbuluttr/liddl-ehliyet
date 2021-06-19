@@ -79,7 +79,7 @@ const MultipleOptionExam = ({ route }) => {
     const finalAd = dataLength - 1;
 
     if (index === 0 || index === firstAd) {
-      getInterstitialAd(env.MULTIPLE_OPTION_EXAM_INTERSTITIAL);
+      getInterstitialAd(env.INTERSTITIAL);
     }
 
     if (index + 1 === firstAd || index + 1 === finalAd) {
@@ -161,11 +161,7 @@ const MultipleOptionExam = ({ route }) => {
             message={"Sınavı bitirmek istediğinize emin misiniz?"}
           />
           <View style={styles.banner}>
-            <AdMobBanner
-              adSize="banner"
-              adUnitID={env.MULTIPLE_OPTION_EXAM_BANNER}
-              onAdFailedToLoad={(error) => console.error(error)}
-            />
+            <AdMobBanner adSize="banner" adUnitID={env.BANNER} onAdFailedToLoad={(error) => console.error(error)} />
           </View>
           <Navbar
             title={`${index + 1}. Soru`}

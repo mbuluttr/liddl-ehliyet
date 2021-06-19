@@ -59,7 +59,7 @@ const WrongAnswersExam = ({ data }) => {
     const finalAd = data.getWrongQuestionsFromDB.length - 1;
 
     if (index === 0 || (finalAd > 8 && index === firstAd)) {
-      getInterstitialAd(env.WRONG_ANSWERS_EXAM_INTERSTITIAL);
+      getInterstitialAd(env.INTERSTITIAL);
     }
 
     if (index + 1 === firstAd || (finalAd > 8 && index + 1 === finalAd)) {
@@ -136,11 +136,7 @@ const WrongAnswersExam = ({ data }) => {
           message={"Sınavı bitirmek istediğinize emin misiniz?"}
         />
         <View style={styles.banner}>
-          <AdMobBanner
-            adSize="banner"
-            adUnitID={env.WRONG_EXAM_BANNER}
-            onAdFailedToLoad={(error) => console.error(error)}
-          />
+          <AdMobBanner adSize="banner" adUnitID={env.BANNER} onAdFailedToLoad={(error) => console.error(error)} />
         </View>
         <Navbar
           title={`${index + 1}. Soru`}

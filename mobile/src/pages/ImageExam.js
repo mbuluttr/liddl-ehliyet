@@ -79,7 +79,7 @@ const ImageExam = ({ route }) => {
     const finalAd = dataLength - 1;
 
     if (index === 0 || index === firstAd) {
-      getInterstitialAd(env.IMAGE_EXAM_INTERSTITIAL);
+      getInterstitialAd(env.INTERSTITIAL);
     }
 
     if (index + 1 === firstAd || index + 1 === finalAd) {
@@ -161,11 +161,7 @@ const ImageExam = ({ route }) => {
             message={"Sınavı bitirmek istediğinize emin misiniz?"}
           />
           <View style={styles.banner}>
-            <AdMobBanner
-              adSize="banner"
-              adUnitID={env.IMAGE_EXAM_BANNER}
-              onAdFailedToLoad={(error) => console.error(error)}
-            />
+            <AdMobBanner adSize="banner" adUnitID={env.BANNER} onAdFailedToLoad={(error) => console.error(error)} />
           </View>
           <Navbar
             title={`${index + 1}. Soru`}
