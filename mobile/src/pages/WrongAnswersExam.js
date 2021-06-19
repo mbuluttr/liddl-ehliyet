@@ -136,7 +136,7 @@ const WrongAnswersExam = ({ data }) => {
           message={"Sınavı bitirmek istediğinize emin misiniz?"}
         />
         <View style={styles.banner}>
-          <AdMobBanner adSize="banner" adUnitID={env.BANNER} onAdFailedToLoad={(error) => console.error(error)} />
+          <AdMobBanner adSize="banner" adUnitID={env.BANNER} onAdFailedToLoad={(error) => console.log(error)} />
         </View>
         <Navbar
           title={`${index + 1}. Soru`}
