@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import QuestionItemBox from "../components/QuestionItemBox";
 import AnswerItemBox from "../components/AnswerItemBox";
 import BottomButtonGroupView from "../components/BottomButtonGroup";
@@ -11,23 +11,15 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { setSelected } from "../redux/slice/examSlice";
-import { InterstitialAd, AdEventType, TestIds } from "@react-native-firebase/admob";
+import { AdMobBanner, AdMobInterstitial } from "react-native-admob";
 import { env } from "../../environments";
 
 const WrongAnswersExam = ({ data }) => {
   const [exitCount, setExitCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : env.WRONG_ANSWERS_EXAM_INTERSTITIAL;
-  const interstitialRef = useRef(
-    InterstitialAd.createForAdRequest(adUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-      keywords: [env.KEY1, env.KEY2, env.KEY3, env.KEY4, env.KEY5, env.KEY6],
-    })
-  );
 
   const [createReport] = useMutation(CREATE_REPORT);
 
@@ -40,29 +32,23 @@ const WrongAnswersExam = ({ data }) => {
     navigation.navigate("Exam Result");
   };
 
-  useEffect(() => {
-    let flag = true;
-    const eventListener = interstitialRef.current.onAdEvent((type) => {
-      if (type === AdEventType.LOADED) {
-        console.log("ad loaded");
-        setLoaded(true);
-      }
-
-      if (type === AdEventType.CLOSED) {
-        console.log("ad closed");
-        setLoaded(false);
-
-        if (flag) {
-          interstitialRef.current.load();
-          flag = false;
-        }
-      }
+  const getInterstitialAd = (id) => {
+    AdMobInterstitial.setAdUnitID(id);
+    AdMobInterstitial.addEventListener("adLoaded", () => {
+      console.log("interstitial loaded success");
     });
+    AdMobInterstitial.requestAd()
+      .then(() => {
+        console.log("interstitial request success");
+      })
+      .catch((e) => {
+        console.log(e.message, "catch | requestAd");
+      });
+  };
 
-    interstitialRef.current.load();
-
+  useEffect(() => {
     return () => {
-      eventListener();
+      AdMobInterstitial.removeAllListeners();
     };
   }, []);
 
@@ -71,15 +57,18 @@ const WrongAnswersExam = ({ data }) => {
 
     const firstAd = Math.trunc(data.getWrongQuestionsFromDB.length / 2);
     const finalAd = data.getWrongQuestionsFromDB.length - 1;
-    console.log(finalAd);
-    if (index + 1 === firstAd || (finalAd > 5 && index + 1 === finalAd)) {
-      if (loaded) {
-        try {
-          interstitialRef.current.show();
-        } catch (error) {
-          console.log("interstitial show | catch");
-        }
-      }
+
+    if (index === 0 || (finalAd > 8 && index === firstAd)) {
+      getInterstitialAd(env.WRONG_ANSWERS_EXAM_INTERSTITIAL);
+    }
+
+    if (index + 1 === firstAd || (finalAd > 8 && index + 1 === finalAd)) {
+      AdMobInterstitial.showAd()
+        .then(() => {
+          console.log("ad show correctly");
+          AdMobInterstitial.removeAllListeners();
+        })
+        .catch((e) => console.log(e.message, "catch | showAd"));
     }
   };
 
@@ -146,17 +135,24 @@ const WrongAnswersExam = ({ data }) => {
           modalRouteHandler={modalRouteHandler}
           message={"Sınavı bitirmek istediğinize emin misiniz?"}
         />
+        <View style={styles.banner}>
+          <AdMobBanner
+            adSize="banner"
+            adUnitID={env.WRONG_EXAM_BANNER}
+            onAdFailedToLoad={(error) => console.error(error)}
+          />
+        </View>
+        <Navbar
+          title={`${index + 1}. Soru`}
+          reportHandler={(questionID, report) => reportHandler(questionID, report)}
+          withReport
+          questionID={data.getWrongQuestionsFromDB[index]._id}
+        />
         <ScrollView
           showsVerticalScrollIndicator={false}
           style={{ marginBottom: hp("10%"), marginHorizontal: wp("5%") }}
           contentContainerStyle={{ paddingBottom: 50 }}
         >
-          <Navbar
-            title={`${index + 1}. Soru`}
-            reportHandler={(questionID, report) => reportHandler(questionID, report)}
-            withReport
-            questionID={data.getWrongQuestionsFromDB[index]._id}
-          />
           <QuestionItemBox data={data.getWrongQuestionsFromDB[index].question} />
           <AnswerItemBox
             answers={data.getWrongQuestionsFromDB[index].answer}
@@ -181,5 +177,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     alignItems: "center",
+  },
+  banner: {
+    height: 60,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    width: wp("90%"),
   },
 });

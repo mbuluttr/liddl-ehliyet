@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import QuestionItemBox from "../components/QuestionItemBox";
 import AnswerItemBox from "../components/AnswerItemBox";
 import BottomButtonGroupView from "../components/BottomButtonGroup";
@@ -12,7 +12,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelected, selectConnection } from "../redux/slice/examSlice";
-import { InterstitialAd, AdEventType, TestIds } from "@react-native-firebase/admob";
+import { AdMobBanner, AdMobInterstitial } from "react-native-admob";
 import { env } from "../../environments";
 
 const ImageExam = ({ route }) => {
@@ -21,17 +21,9 @@ const ImageExam = ({ route }) => {
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [dataLength, setDataLength] = useState(0);
-  const [loaded, setLoaded] = useState(false);
   const navigation = useNavigation();
   const connection = useSelector(selectConnection);
   const dispatch = useDispatch();
-  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : env.IMAGE_EXAM_INTERSTITIAL;
-  const interstitialRef = useRef(
-    InterstitialAd.createForAdRequest(adUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-      keywords: [env.KEY3, env.KEY4],
-    })
-  );
 
   const { data, refetch } = useQuery(GET_IMAGE_EXISTS_QUESTIONS_FROM_DB, {
     variables: {
@@ -60,29 +52,23 @@ const ImageExam = ({ route }) => {
     navigation.navigate("Exam Result");
   };
 
-  useEffect(() => {
-    let flag = true;
-    const eventListener = interstitialRef.current.onAdEvent((type) => {
-      if (type === AdEventType.LOADED) {
-        console.log("ad loaded");
-        setLoaded(true);
-      }
-
-      if (type === AdEventType.CLOSED) {
-        console.log("ad closed");
-        setLoaded(false);
-
-        if (flag) {
-          interstitialRef.current.load();
-          flag = false;
-        }
-      }
+  const getInterstitialAd = (id) => {
+    AdMobInterstitial.setAdUnitID(id);
+    AdMobInterstitial.addEventListener("adLoaded", () => {
+      console.log("interstitial loaded success");
     });
+    AdMobInterstitial.requestAd()
+      .then(() => {
+        console.log("interstitial request success");
+      })
+      .catch((e) => {
+        console.log(e.message, "catch | requestAd");
+      });
+  };
 
-    interstitialRef.current.load();
-
+  useEffect(() => {
     return () => {
-      eventListener();
+      AdMobInterstitial.removeAllListeners();
     };
   }, []);
 
@@ -92,14 +78,17 @@ const ImageExam = ({ route }) => {
     const firstAd = Math.trunc(dataLength / 2);
     const finalAd = dataLength - 1;
 
+    if (index === 0 || index === firstAd) {
+      getInterstitialAd(env.IMAGE_EXAM_INTERSTITIAL);
+    }
+
     if (index + 1 === firstAd || index + 1 === finalAd) {
-      if (loaded) {
-        try {
-          interstitialRef.current.show();
-        } catch (error) {
-          console.log("interstitial show | catch");
-        }
-      }
+      AdMobInterstitial.showAd()
+        .then(() => {
+          console.log("ad show correctly");
+          AdMobInterstitial.removeAllListeners();
+        })
+        .catch((e) => console.log(e.message, "catch | showAd"));
     }
   };
 
@@ -171,17 +160,24 @@ const ImageExam = ({ route }) => {
             modalRouteHandler={modalRouteHandler}
             message={"Sınavı bitirmek istediğinize emin misiniz?"}
           />
+          <View style={styles.banner}>
+            <AdMobBanner
+              adSize="banner"
+              adUnitID={env.IMAGE_EXAM_BANNER}
+              onAdFailedToLoad={(error) => console.error(error)}
+            />
+          </View>
+          <Navbar
+            title={`${index + 1}. Soru`}
+            reportHandler={(questionID, report) => reportHandler(questionID, report)}
+            withReport
+            questionID={data.getImageExistsQuestionsFromDB[index]._id}
+          />
           <ScrollView
             showsVerticalScrollIndicator={false}
             style={{ marginBottom: hp("10%"), marginHorizontal: wp("5%") }}
             contentContainerStyle={{ paddingBottom: 50 }}
           >
-            <Navbar
-              title={`${index + 1}. Soru`}
-              reportHandler={(questionID, report) => reportHandler(questionID, report)}
-              withReport
-              questionID={data.getImageExistsQuestionsFromDB[index]._id}
-            />
             <QuestionItemBox data={data.getImageExistsQuestionsFromDB[index].question} />
             <AnswerItemBox
               answers={data.getImageExistsQuestionsFromDB[index].answer}
@@ -207,5 +203,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     alignItems: "center",
+  },
+  banner: {
+    height: 60,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    width: wp("90%"),
   },
 });
