@@ -10,25 +10,25 @@ const MenuItemBox = ({ title, imagePath, route, questionCount }) => {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.itemBox}>
+    <TouchableOpacity
+      style={styles.itemBox}
+      activeOpacity={0.7}
+      onPress={() =>
+        navigation.navigate(route, {
+          questionCount: questionCount,
+        })
+      }
+    >
       <View style={styles.imageView}>
         <Image source={imagePath} resizeMode="contain" style={styles.image} />
       </View>
       <View style={styles.titleView}>
         <Text style={styles.text}>{title}</Text>
       </View>
-      <TouchableOpacity
-        style={styles.iconView}
-        activeOpacity={0.7}
-        onPress={() =>
-          navigation.navigate(route, {
-            questionCount: questionCount,
-          })
-        }
-      >
+      <View style={styles.iconView}>
         <Ionicons name="arrow-forward" size={sizes.hiki * 18} color={colors.smokewhite} style={styles.icon} />
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
