@@ -12,7 +12,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelected, selectConnection } from "../redux/slice/examSlice";
-import { AdMobBanner, AdMobInterstitial } from "react-native-admob";
+import { AdMobInterstitial } from "react-native-admob";
 import { env } from "../../environments";
 
 const ImageExam = ({ route }) => {
@@ -160,9 +160,6 @@ const ImageExam = ({ route }) => {
             modalRouteHandler={modalRouteHandler}
             message={"Sınavı bitirmek istediğinize emin misiniz?"}
           />
-          <View style={styles.banner}>
-            <AdMobBanner adSize="banner" adUnitID={env.BANNER} onAdFailedToLoad={(error) => console.log(error)} />
-          </View>
           <Navbar
             title={`${index + 1}. Soru`}
             reportHandler={(questionID, report) => reportHandler(questionID, report)}
@@ -199,12 +196,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     alignItems: "center",
-  },
-  banner: {
-    height: 60,
-    backgroundColor: "transparent",
-    alignItems: "center",
-    justifyContent: "center",
-    width: wp("90%"),
   },
 });
